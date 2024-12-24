@@ -21,6 +21,7 @@ namespace WebApplication1.Controllers
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()
         {
+            System.Diagnostics.Trace.TraceError("If you're seeing this, something bad happened");
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
                 Date = DateTime.Now.AddDays(index),
