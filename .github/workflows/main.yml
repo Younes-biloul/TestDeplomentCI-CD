@@ -1,36 +1,39 @@
-name: Deploy to Azure App Service
+name: Publish 🚀
 
 on:
+  workflow_dispatch:
   push:
     branches:
-      - main # Replace with your branch name if different
+    - main
+
+env:
+  AZURE_WEBAPP_NAME: current-time-service
+  AZURE_WEBAPP_PACKAGE_PATH: "./publish"
 
 jobs:
-  build-and-deploy:
+  publish:
     runs-on: windows-latest
-
+    
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
-
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '8.0'
-
-    - name: Install Dependencies
-      run: dotnet restore
-
-    - name: Build Application
-      run: dotnet build --configuration Release
-
-    - name: Publish Application
-      run: dotnet publish -c Release -o publish
-
-    - name: Deploy to Azure Web App
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: 'testappcicd' # Replace with your app service name
-        slot-name: 'production'
-        publish-profile: ${{ secrets.AZURE_CREDENTIALS }}
-        package: publish
+      - uses: actions/checkout@v3
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+          
+      - name: Restore
+        run: dotnet restore ./CurrentTimeService.sln
+        
+      - name: Build
+        run: dotnet build ./CurrentTimeService.sln --configuration Release --no-restore
+        
+      - name: Publish
+        run: dotnet publish ./CurrentTimeService.sln --configuration Release --no-build --output '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
+        
+      - name: Deployment
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+          package: "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
